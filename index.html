@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>老虎机摇球游戏</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: url('background.jpg') no-repeat center center fixed; /* 替换为你的背景图片 */
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .game-container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .ball-container {
+            width: 200px;
+            height: 300px;
+            border: 5px solid #ccc;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .ball {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            position: absolute;
+            transition: all 0.5s ease;
+        }
+
+       .blue {
+    background: url('blue-ball.png') no-repeat center center;
+    background-size: cover;
+}
+.red {
+    background: url('red-ball.png') no-repeat center center;
+    background-size: cover;
+}
+
+        .lever {
+            width: 50px;
+            height: 100px;
+            background-color: #888;
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            transform-origin: top center;
+            animation: none;
+        }
+
+        .lever-handle {
+            width: 20px;
+            height: 60px;
+            background-color: #555;
+            border-radius: 5px;
+            position: absolute;
+            bottom: 0;
+            left: 15px;
+        }
+
+        .result-container {
+            width: 100px;
+            height: 300px;
+            border: 5px solid #ccc;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-ball {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+
+        .history {
+            margin-top: 20px;
+            max-height: 100px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        @keyframes shake {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(10deg); }
+            50% { transform: rotate(-10deg); }
+            75% { transform: rotate(10deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(300px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- 摇杆 -->
+        <div class="lever" id="lever" onclick="startShake()">
+            <div class="lever-handle"></div>
+        </div>
+
+        <!-- 小球容器 -->
+        <div class="ball-container" id="ballContainer">
+            <!-- 小球会通过JavaScript动态生成 -->
+        </div>
+
+        <!-- 结果显示区域 -->
+        <div class="result-container" id="resultContainer">
+            <!-- 掉出的小球会显示在这里 -->
+        </div>
+    </div>
+
+    <!-- 历史记录 -->
+    <div class="history">
+        <h3>摇球历史记录</h3>
+        <ul id="historyList"></ul>
+    </div>
+
+    <script>
+        const ballContainer = document.getElementById('ballContainer');
+        const resultContainer = document.getElementById('resultContainer');
+        const lever = document.getElementById('lever');
+        const historyList = document.getElementById('historyList');
+        let balls = [];
+
+        // 初始化小球
+        function initBalls() {
+            for (let i = 0; i < 10; i++) {
+                createBall('blue');
+                createBall('red');
+            }
+        }
+
+        // 创建小球
+        function createBall(color) {
+            const ball = document.createElement('div');
+            ball.classList.add('ball', color);
+            ball.style.left = `${Math.random() * 160}px`;
+            ball.style.top = `${Math.random() * 260}px`;
+            ballContainer.appendChild(ball);
+            balls.push(ball);
+        }
+
+        // 摇杆动画
+        function startShake() {
+            if (balls.length < 2) {
+                alert('没有足够的小球了！');
+                return;
+            }
+
+            // 摇杆动画
+            lever.style.animation = 'shake 0.5s ease-in-out';
+
+            // 小球搅动动画
+            balls.forEach(ball => {
+                ball.style.left = `${Math.random() * 160}px`;
+                ball.style.top = `${Math.random() * 260}px`;
+            });
+
+            // 1秒后掉出两个小球
+            setTimeout(() => {
+                lever.style.animation = '';
+                dropBalls();
+            }, 1000);
+        }
+
+        // 掉出两个小球
+        function dropBalls() {
+            // 随机选择两个小球
+            const ball1 = balls.splice(Math.floor(Math.random() * balls.length), 1)[0];
+            const ball2 = balls.splice(Math.floor(Math.random() * balls.length), 1)[0];
+
+            // 显示掉出的小球
+            showResult(ball1, ball2);
+
+            // 记录历史
+            const historyItem = document.createElement('li');
+            historyItem.textContent = `掉出了 ${ball1.classList.contains('blue') ? '蓝色' : '红色'} 和 ${ball2.classList.contains('blue') ? '蓝色' : '红色'} 小球`;
+            historyList.appendChild(historyItem);
+
+            // 2秒后将小球重新放回容器
+            setTimeout(() => {
+                ballContainer.appendChild(ball1);
+                ballContainer.appendChild(ball2);
+                balls.push(ball1, ball2);
+                resultContainer.innerHTML = ''; // 清空结果显示区域
+            }, 2000);
+        }
+
+        // 显示掉出的小球
+        function showResult(ball1, ball2) {
+            const resultBall1 = document.createElement('div');
+            resultBall1.classList.add('result-ball', ball1.classList.contains('blue') ? 'blue' : 'red');
+            resultContainer.appendChild(resultBall1);
+
+            const resultBall2 = document.createElement('div');
+            resultBall2.classList.add('result-ball', ball2.classList.contains('blue') ? 'blue' : 'red');
+            resultContainer.appendChild(resultBall2);
+        }
+
+        // 初始化
+        initBalls();
+    </script>
+</body>
+</html>
